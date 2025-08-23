@@ -64,42 +64,61 @@ export const ChatInterface = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <Card className={`max-w-[80%] p-4 shadow-card ${
-              message.sender === 'user' 
-                ? 'bg-gradient-primary text-primary-foreground' 
-                : 'bg-card border-border'
+            <div className={`flex items-end space-x-3 max-w-[75%] ${
+              message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'
             }`}>
-              <div className="flex items-start space-x-2">
-                {message.sender === 'ai' && (
-                  <Bot className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                )}
-                <p className="text-sm leading-relaxed">{message.text}</p>
-                {message.sender === 'user' && (
-                  <User className="w-5 h-5 text-primary-foreground mt-0.5 flex-shrink-0" />
+              {/* Avatar */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                message.sender === 'user' 
+                  ? 'bg-gradient-primary' 
+                  : 'bg-secondary'
+              }`}>
+                {message.sender === 'user' ? (
+                  <User className="w-4 h-4 text-primary-foreground" />
+                ) : (
+                  <Bot className="w-4 h-4 text-primary" />
                 )}
               </div>
-            </Card>
+
+              {/* Message Bubble */}
+              <div className={`relative px-4 py-3 rounded-2xl shadow-md ${
+                message.sender === 'user' 
+                  ? 'bg-gradient-primary text-primary-foreground rounded-br-md' 
+                  : 'bg-card border border-border rounded-bl-md'
+              }`}>
+                <p className="text-sm leading-relaxed">{message.text}</p>
+                {/* Message tail */}
+                <div className={`absolute bottom-0 w-3 h-3 ${
+                  message.sender === 'user' 
+                    ? 'right-0 bg-gradient-primary transform rotate-45 translate-x-1 translate-y-1' 
+                    : 'left-0 bg-card border-l border-b border-border transform rotate-45 -translate-x-1 translate-y-1'
+                }`}></div>
+              </div>
+            </div>
           </div>
         ))}
         
         {isTyping && (
           <div className="flex justify-start">
-            <Card className="max-w-[80%] p-4 bg-card border-border shadow-card">
-              <div className="flex items-center space-x-2">
-                <Bot className="w-5 h-5 text-primary" />
+            <div className="flex items-end space-x-3 max-w-[75%]">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4 text-primary" />
+              </div>
+              <div className="relative px-4 py-3 bg-card border border-border rounded-2xl rounded-bl-md shadow-md">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                   <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
+                <div className="absolute bottom-0 left-0 w-3 h-3 bg-card border-l border-b border-border transform rotate-45 -translate-x-1 translate-y-1"></div>
               </div>
-            </Card>
+            </div>
           </div>
         )}
       </div>
