@@ -28,7 +28,7 @@ class OpenAIService {
   }
 
   private getSystemPrompt(): string {
-    return `คุณคือ Lawra ทนายความ AI ให้คำตอบสั้นๆ กระชับ ไม่เกิน 10 บรรทัด เน้นประเด็นสำคัญ และแนะนำปรึกษาทนายมืออาชีพ`;
+    return `คุณคือ Lawra ทนายความ AI ให้คำตอบสั้นๆ กระชับ ไม่เกิน 10 บรรทัด เน้นประเด็นสำคัญ และแนะนำปรึกษาทนายมืออาชีพ แต่ห้ามตอบกลับมาว่าโดยสรุปหรือสั้นๆ`;
   }
 
   async sendMessage(
@@ -59,33 +59,35 @@ class OpenAIService {
 
       if (onStream) {
         // Handle streaming response
-        let fullResponse = '';
-        let finishReason = '';
-        
+        let fullResponse = "";
+        let finishReason = "";
+
         for await (const chunk of completion as any) {
-          const delta = chunk.choices[0]?.delta?.content || '';
+          const delta = chunk.choices[0]?.delta?.content || "";
           if (delta) {
             fullResponse += delta;
             onStream(delta);
           }
-          
+
           if (chunk.choices[0]?.finish_reason) {
             finishReason = chunk.choices[0].finish_reason;
           }
         }
-        
-        console.log('Streaming Response Details:', {
+
+        console.log("Streaming Response Details:", {
           finishReason,
-          fullLength: fullResponse.length
+          fullLength: fullResponse.length,
         });
-        
+
         if (!fullResponse.trim()) {
-          if (finishReason === 'length') {
-            throw new Error('คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม');
+          if (finishReason === "length") {
+            throw new Error(
+              "คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม"
+            );
           }
           throw new Error("ไม่ได้รับคำตอบจาก AI กรุณาลองใหม่อีกครั้ง");
         }
-        
+
         return fullResponse.trim();
       } else {
         // Handle non-streaming response
@@ -93,16 +95,18 @@ class OpenAIService {
         const response = nonStreamCompletion.choices[0]?.message?.content;
         const finishReason = nonStreamCompletion.choices[0]?.finish_reason;
 
-        console.log('OpenAI Response Details:', {
+        console.log("OpenAI Response Details:", {
           finishReason,
           hasContent: !!response,
           contentLength: response?.length || 0,
-          usage: nonStreamCompletion.usage
+          usage: nonStreamCompletion.usage,
         });
 
-        if (!response || response.trim() === '') {
-          if (finishReason === 'length') {
-            throw new Error('คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม');
+        if (!response || response.trim() === "") {
+          if (finishReason === "length") {
+            throw new Error(
+              "คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม"
+            );
           }
           throw new Error("ไม่ได้รับคำตอบจาก AI กรุณาลองใหม่อีกครั้ง");
         }
