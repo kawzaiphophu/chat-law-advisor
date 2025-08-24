@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, AlertCircle, Users } from 'lucide-react';
-import { openAIService } from '@/lib/openai';
+import { Send, Bot, User, AlertCircle, Users } from "lucide-react";
+import { openAIService } from "@/lib/openai";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: Date;
   error?: boolean;
 }
 
 interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -26,22 +26,26 @@ const EXAMPLE_QUESTIONS = [
   "สามารถขอหย่าร้างได้ในกรณีใดบ้าง?",
   "ขั้นตอนการทำพินัยกรรมเป็นอย่างไร?",
   "สิทธิ์ของลูกจ้างเมื่อถูกไล่ออกจากงาน",
-  "การขอกู้เงินธนาคารต้องระวังอะไร?"
+  "การขอกู้เงินธนาคารต้องระวังอะไร?",
 ];
 
 export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      text: 'สวัสดีครับ ผมคือ Lawra ทนายความ AI ที่พร้อมให้คำปรึกษาทางกฎหมายแก่คุณ มีคำถามอะไรให้ผมช่วยเหลือไหมครับ?',
-      sender: 'ai',
-      timestamp: new Date()
-    }
+      id: "1",
+      text: "สวัสดีครับ ผมคือ Lawra ทนายความ AI ที่พร้อมให้คำปรึกษาทางกฎหมายแก่คุณ มีคำถามอะไรให้ผมช่วยเหลือไหมครับ?",
+      sender: "ai",
+      timestamp: new Date(),
+    },
   ]);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const [inputText, setInputText] = useState('');
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+    null
+  );
+  const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>(
+    []
+  );
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -49,26 +53,29 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       text: text.trim(),
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText("");
     setIsTyping(true);
 
     // Check if OpenAI is configured
     if (!openAIService.isConfigured()) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'ขออภัย ระบบ AI ยังไม่ได้รับการตั้งค่า กรุณาตั้งค่า OpenAI API key ในไฟล์ .env\n\nในขณะนี้แสดงเป็นตัวอย่างการตอบกลับ: "' + text + '" - นี่เป็นคำถามที่ดี ในระบบจริงจะมีการวิเคราะห์และให้คำแนะนำทางกฎหมายที่เหมาะสม',
-        sender: 'ai',
+        text:
+          'ขออภัย ระบบ AI ยังไม่ได้รับการตั้งค่า กรุณาตั้งค่า OpenAI API key ในไฟล์ .env\n\nในขณะนี้แสดงเป็นตัวอย่างการตอบกลับ: "' +
+          text +
+          '" - นี่เป็นคำถามที่ดี ในระบบจริงจะมีการวิเคราะห์และให้คำแนะนำทางกฎหมายที่เหมาะสม',
+        sender: "ai",
         timestamp: new Date(),
-        error: true
+        error: true,
       };
-      
+
       setTimeout(() => {
-        setMessages(prev => [...prev, errorMessage]);
+        setMessages((prev) => [...prev, errorMessage]);
         setIsTyping(false);
       }, 1000);
       return;
@@ -78,58 +85,58 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
       // Create streaming message placeholder
       const streamingId = (Date.now() + 1).toString();
       setStreamingMessageId(streamingId);
-      
+
       const streamingMessage: Message = {
         id: streamingId,
-        text: '',
-        sender: 'ai',
-        timestamp: new Date()
+        text: "",
+        sender: "ai",
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, streamingMessage]);
-      
+
+      setMessages((prev) => [...prev, streamingMessage]);
+
       // Get AI response with streaming
       const aiResponseText = await openAIService.sendMessage(
-        text.trim(), 
+        text.trim(),
         conversationHistory,
         (chunk: string) => {
           // Update streaming message with new chunk
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === streamingId 
-                ? { ...msg, text: msg.text + chunk }
-                : msg
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === streamingId ? { ...msg, text: msg.text + chunk } : msg
             )
           );
         }
       );
-      
+
       setStreamingMessageId(null);
-      
+
       // Update conversation history
-      setConversationHistory(prev => [
+      setConversationHistory((prev) => [
         ...prev,
-        { role: 'user', content: text.trim() },
-        { role: 'assistant', content: aiResponseText }
+        { role: "user", content: text.trim() },
+        { role: "assistant", content: aiResponseText },
       ]);
-      
     } catch (error) {
       setStreamingMessageId(null);
-      
+
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
-        text: error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
-        sender: 'ai',
+        text:
+          error instanceof Error
+            ? error.message
+            : "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง",
+        sender: "ai",
         timestamp: new Date(),
-        error: true
+        error: true,
       };
-      
+
       // Remove streaming message and add error message
-      setMessages(prev => [
-        ...prev.filter(msg => msg.id !== streamingMessageId),
-        errorMessage
+      setMessages((prev) => [
+        ...prev.filter((msg) => msg.id !== streamingMessageId),
+        errorMessage,
       ]);
-      console.error('Chat error:', error);
+      console.error("Chat error:", error);
     } finally {
       setIsTyping(false);
     }
@@ -146,18 +153,24 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div className={`flex items-end space-x-3 max-w-[75%] ${
-              message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'
-            }`}>
+            <div
+              className={`flex items-end space-x-3 max-w-[75%] ${
+                message.sender === "user"
+                  ? "flex-row-reverse space-x-reverse"
+                  : "flex-row"
+              }`}
+            >
               {/* Avatar */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                message.sender === 'user' 
-                  ? 'bg-gradient-primary' 
-                  : 'bg-secondary'
-              }`}>
-                {message.sender === 'user' ? (
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.sender === "user"
+                    ? "bg-gradient-primary"
+                    : "bg-secondary"
+                }`}
+              >
+                {message.sender === "user" ? (
                   <User className="w-4 h-4 text-primary-foreground" />
                 ) : (
                   <Bot className="w-4 h-4 text-primary" />
@@ -165,46 +178,72 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
               </div>
 
               {/* Message Bubble */}
-              <div className={`relative px-4 py-3 rounded-2xl shadow-md ${
-                message.sender === 'user' 
-                  ? 'bg-gradient-primary text-primary-foreground rounded-br-md' 
-                  : message.error
-                  ? 'bg-destructive/10 border border-destructive/20 rounded-bl-md'
-                  : 'bg-card border border-border rounded-bl-md'
-              }`}>
+              <div
+                className={`relative px-4 py-3 rounded-2xl shadow-md ${
+                  message.sender === "user"
+                    ? "bg-gradient-primary text-primary-foreground rounded-br-md"
+                    : message.error
+                      ? "bg-destructive/10 border border-destructive/20 rounded-bl-md"
+                      : "bg-card border border-border rounded-bl-md"
+                }`}
+              >
                 {message.error && (
                   <div className="flex items-start space-x-2 mb-2">
                     <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                    <span className="text-xs text-destructive font-medium">ข้อผิดพลาด</span>
+                    <span className="text-xs text-destructive font-medium">
+                      ข้อผิดพลาด
+                    </span>
                   </div>
                 )}
-                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                  message.error ? 'text-destructive' : ''
-                }`}>{message.text}</p>
+                <p
+                  className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                    message.error ? "text-destructive" : ""
+                  }`}
+                >
+                  {message.text}
+                  {/* Show loading dots for streaming message */}
+                  {streamingMessageId === message.id && (
+                    <span className="inline-flex space-x-1 ml-2">
+                      <span className="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
+                      <span
+                        className="w-1 h-1 bg-primary rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></span>
+                      <span
+                        className="w-1 h-1 bg-primary rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></span>
+                    </span>
+                  )}
+                </p>
                 {/* Message tail */}
-                <div className={`absolute bottom-0 w-3 h-3 ${
-                  message.sender === 'user' 
-                    ? 'right-0 bg-gradient-primary transform rotate-45 translate-x-1 translate-y-1' 
-                    : message.error
-                    ? 'left-0 bg-destructive/10 border-l border-b border-destructive/20 transform rotate-45 -translate-x-1 translate-y-1'
-                    : 'left-0 bg-card border-l border-b border-border transform rotate-45 -translate-x-1 translate-y-1'
-                }`}></div>
               </div>
             </div>
           </div>
         ))}
-        
-        {isTyping && (
+
+        {isTyping && !streamingMessageId && (
           <div className="flex justify-start">
             <div className="flex items-end space-x-3 max-w-[75%]">
               <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
                 <Bot className="w-4 h-4 text-primary" />
               </div>
               <div className="relative px-4 py-3 bg-card border border-border rounded-2xl rounded-bl-md shadow-md">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="space-y-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    กำลังคิดและวิเคราะห์คำถาม...
+                  </p>
                 </div>
                 <div className="absolute bottom-0 left-0 w-3 h-3 bg-card border-l border-b border-border transform rotate-45 -translate-x-1 translate-y-1"></div>
               </div>
@@ -216,7 +255,9 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
       {/* Example Questions */}
       {messages.length === 1 && (
         <div className="p-4 border-t border-border">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">คำถามที่พบบ่อย:</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">
+            คำถามที่พบบ่อย:
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {EXAMPLE_QUESTIONS.map((question, index) => (
               <Button
@@ -255,7 +296,9 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="พิมพ์คำถามของคุณที่นี่..."
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
+            onKeyPress={(e) =>
+              e.key === "Enter" && handleSendMessage(inputText)
+            }
             className="flex-1"
           />
           <Button
@@ -263,9 +306,9 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
             disabled={!inputText.trim() || isTyping}
             variant="hero"
             size="icon"
-            title={isTyping ? 'กำลังประมวลผล...' : 'ส่งข้อความ'}
+            title={isTyping ? "กำลังประมวลผล..." : "ส่งข้อความ"}
           >
-            <Send className={`w-4 h-4 ${isTyping ? 'animate-pulse' : ''}`} />
+            <Send className={`w-4 h-4 ${isTyping ? "animate-pulse" : ""}`} />
           </Button>
         </div>
       </div>
