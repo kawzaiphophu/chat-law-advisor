@@ -2,13 +2,20 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, AlertCircle } from 'lucide-react';
+import { openAIService } from '@/lib/openai';
 
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  error?: boolean;
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 const EXAMPLE_QUESTIONS = [
@@ -22,16 +29,17 @@ export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'สวัสดีครับ ผมคือทนายความ AI ที่พร้อมให้คำปรึกษาทางกฎหมายแก่คุณ มีคำถามอะไรให้ผมช่วยเหลือไหมครับ?',
+      text: 'สวัสดีครับ ผมคือ Lawra ทนายความ AI ที่พร้อมให้คำปรึกษาทางกฎหมายแก่คุณ มีคำถามอะไรให้ผมช่วยเหลือไหมครับ?',
       sender: 'ai',
       timestamp: new Date()
     }
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -44,17 +52,57 @@ export const ChatInterface = () => {
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    // Check if OpenAI is configured
+    if (!openAIService.isConfigured()) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'ขออภัย ระบบ AI ยังไม่ได้รับการตั้งค่า กรุณาตั้งค่า OpenAI API key ในไฟล์ .env\n\nในขณะนี้แสดงเป็นตัวอย่างการตอบกลับ: "' + text + '" - นี่เป็นคำถามที่ดี ในระบบจริงจะมีการวิเคราะห์และให้คำแนะนำทางกฎหมายที่เหมาะสม',
+        sender: 'ai',
+        timestamp: new Date(),
+        error: true
+      };
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, errorMessage]);
+        setIsTyping(false);
+      }, 1000);
+      return;
+    }
+
+    try {
+      // Get AI response
+      const aiResponseText = await openAIService.sendMessage(text.trim(), conversationHistory);
+      
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: `ขอบคุณสำหรับคำถาม "${text}" นี่เป็นตัวอย่างการตอบกลับจากทนาย AI ในระบบจริงจะมีการประมวลผลคำถามทางกฎหมายและให้คำแนะนำที่เหมาะสม กรุณาติดต่อทนายมืออาชีพสำหรับคำปรึกษาเฉพาะเจาะจง`,
+        text: aiResponseText,
         sender: 'ai',
         timestamp: new Date()
       };
+
       setMessages(prev => [...prev, aiResponse]);
+      
+      // Update conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { role: 'user', content: text.trim() },
+        { role: 'assistant', content: aiResponseText }
+      ]);
+      
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
+        sender: 'ai',
+        timestamp: new Date(),
+        error: true
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      console.error('Chat error:', error);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleQuestionClick = (question: string) => {
@@ -90,13 +138,25 @@ export const ChatInterface = () => {
               <div className={`relative px-4 py-3 rounded-2xl shadow-md ${
                 message.sender === 'user' 
                   ? 'bg-gradient-primary text-primary-foreground rounded-br-md' 
+                  : message.error
+                  ? 'bg-destructive/10 border border-destructive/20 rounded-bl-md'
                   : 'bg-card border border-border rounded-bl-md'
               }`}>
-                <p className="text-sm leading-relaxed">{message.text}</p>
+                {message.error && (
+                  <div className="flex items-start space-x-2 mb-2">
+                    <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-destructive font-medium">ข้อผิดพลาด</span>
+                  </div>
+                )}
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                  message.error ? 'text-destructive' : ''
+                }`}>{message.text}</p>
                 {/* Message tail */}
                 <div className={`absolute bottom-0 w-3 h-3 ${
                   message.sender === 'user' 
                     ? 'right-0 bg-gradient-primary transform rotate-45 translate-x-1 translate-y-1' 
+                    : message.error
+                    ? 'left-0 bg-destructive/10 border-l border-b border-destructive/20 transform rotate-45 -translate-x-1 translate-y-1'
                     : 'left-0 bg-card border-l border-b border-border transform rotate-45 -translate-x-1 translate-y-1'
                 }`}></div>
               </div>
@@ -158,8 +218,9 @@ export const ChatInterface = () => {
             disabled={!inputText.trim() || isTyping}
             variant="hero"
             size="icon"
+            title={isTyping ? 'กำลังประมวลผล...' : 'ส่งข้อความ'}
           >
-            <Send className="w-4 h-4" />
+            <Send className={`w-4 h-4 ${isTyping ? 'animate-pulse' : ''}`} />
           </Button>
         </div>
       </div>
