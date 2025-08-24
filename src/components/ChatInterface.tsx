@@ -38,6 +38,7 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
       timestamp: new Date()
     }
   ]);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
@@ -74,17 +75,36 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
     }
 
     try {
-      // Get AI response
-      const aiResponseText = await openAIService.sendMessage(text.trim(), conversationHistory);
+      // Create streaming message placeholder
+      const streamingId = (Date.now() + 1).toString();
+      setStreamingMessageId(streamingId);
       
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: aiResponseText,
+      const streamingMessage: Message = {
+        id: streamingId,
+        text: '',
         sender: 'ai',
         timestamp: new Date()
       };
-
-      setMessages(prev => [...prev, aiResponse]);
+      
+      setMessages(prev => [...prev, streamingMessage]);
+      
+      // Get AI response with streaming
+      const aiResponseText = await openAIService.sendMessage(
+        text.trim(), 
+        conversationHistory,
+        (chunk: string) => {
+          // Update streaming message with new chunk
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === streamingId 
+                ? { ...msg, text: msg.text + chunk }
+                : msg
+            )
+          );
+        }
+      );
+      
+      setStreamingMessageId(null);
       
       // Update conversation history
       setConversationHistory(prev => [
@@ -94,15 +114,21 @@ export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
       ]);
       
     } catch (error) {
+      setStreamingMessageId(null);
+      
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         text: error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
         sender: 'ai',
         timestamp: new Date(),
         error: true
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      // Remove streaming message and add error message
+      setMessages(prev => [
+        ...prev.filter(msg => msg.id !== streamingMessageId),
+        errorMessage
+      ]);
       console.error('Chat error:', error);
     } finally {
       setIsTyping(false);

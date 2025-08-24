@@ -33,7 +33,8 @@ class OpenAIService {
 
   async sendMessage(
     userMessage: string,
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    onStream?: (chunk: string) => void
   ): Promise<string> {
     if (!this.client) {
       throw new Error("OpenAI client not configured");
@@ -53,26 +54,61 @@ class OpenAIService {
         model: this.model,
         messages: messages,
         max_completion_tokens: this.maxTokens,
+        stream: !!onStream, // Enable streaming if callback provided
       });
 
-      const response = completion.choices[0]?.message?.content;
-      const finishReason = completion.choices[0]?.finish_reason;
-
-      console.log('OpenAI Response Details:', {
-        finishReason,
-        hasContent: !!response,
-        contentLength: response?.length || 0,
-        usage: completion.usage
-      });
-
-      if (!response || response.trim() === '') {
-        if (finishReason === 'length') {
-          throw new Error('คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม');
+      if (onStream) {
+        // Handle streaming response
+        let fullResponse = '';
+        let finishReason = '';
+        
+        for await (const chunk of completion as any) {
+          const delta = chunk.choices[0]?.delta?.content || '';
+          if (delta) {
+            fullResponse += delta;
+            onStream(delta);
+          }
+          
+          if (chunk.choices[0]?.finish_reason) {
+            finishReason = chunk.choices[0].finish_reason;
+          }
         }
-        throw new Error("ไม่ได้รับคำตอบจาก AI กรุณาลองใหม่อีกครั้ง");
-      }
+        
+        console.log('Streaming Response Details:', {
+          finishReason,
+          fullLength: fullResponse.length
+        });
+        
+        if (!fullResponse.trim()) {
+          if (finishReason === 'length') {
+            throw new Error('คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม');
+          }
+          throw new Error("ไม่ได้รับคำตอบจาก AI กรุณาลองใหม่อีกครั้ง");
+        }
+        
+        return fullResponse.trim();
+      } else {
+        // Handle non-streaming response
+        const nonStreamCompletion = completion as any;
+        const response = nonStreamCompletion.choices[0]?.message?.content;
+        const finishReason = nonStreamCompletion.choices[0]?.finish_reason;
 
-      return response.trim();
+        console.log('OpenAI Response Details:', {
+          finishReason,
+          hasContent: !!response,
+          contentLength: response?.length || 0,
+          usage: nonStreamCompletion.usage
+        });
+
+        if (!response || response.trim() === '') {
+          if (finishReason === 'length') {
+            throw new Error('คำตอบยาวเกินไป กรุณาลองถามคำถามที่สั้นกว่านี้ หรือแบ่งเป็นหลายคำถาม');
+          }
+          throw new Error("ไม่ได้รับคำตอบจาก AI กรุณาลองใหม่อีกครั้ง");
+        }
+
+        return response.trim();
+      }
     } catch (error) {
       console.error("OpenAI Service Error:", error);
 
