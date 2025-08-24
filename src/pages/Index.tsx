@@ -104,9 +104,14 @@ const Index = () => {
             {/* Service Navigation */}
             <div className="bg-card/30 backdrop-blur-sm border-t border-border">
               <div className="container mx-auto px-4 py-12">
-                <h2 className="text-3xl font-bold text-center text-foreground mb-8">
-                  เลือกบริการที่ต้องการ
-                </h2>
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-foreground mb-4">
+                    บริการของ Lawra
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    เลือกบริการที่เหมาะสมกับความต้องการของคุณ ทั้งการปรึกษา AI ฟรี และการจองทนายมืออาชีพ
+                  </p>
+                </div>
                 <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                   <Card className="p-8 bg-card/80 backdrop-blur-sm border-border shadow-card hover:shadow-elegant transition-all duration-300 cursor-pointer group"
                         onClick={handleStartChat}>

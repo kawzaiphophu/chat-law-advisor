@@ -17,15 +17,39 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h2 className="text-2xl font-bold text-primary">Lawra</h2>
+              </div>
+              
               <h1 className="text-4xl lg:text-6xl font-bold text-foreground leading-tight">
-                ปรึกษา
-                <span className="bg-gradient-primary bg-clip-text text-transparent"> ทนาย AI </span>
+                ปรึกษาทนาย AI 
+                <span className="bg-gradient-primary bg-clip-text text-transparent"> ที่ทันสมัย</span>
                 ได้ทุกเวลา
               </h1>
+              
               <p className="text-xl text-muted-foreground leading-relaxed">
-                รับคำปรึกษาทางกฎหมายจากปัญญาประดิษฐ์ที่มีความรู้กว้างขวาง 
-                พร้อมให้บริการ 24/7 เพื่อตอบคำถามและแนะนำแนวทางในเรื่องกฎหมาย
+                <strong>Lawra</strong> คือแพลตฟอร์มปรึกษาทนาย AI ออนไลน์ที่ทันสมัย 
+                ผสานเทคโนโลยี AI เข้ากับความรู้ทางกฎหมายที่ครอบคลุม 
+                พร้อมให้บริการ 24/7 เพื่อช่วยคุณแก้ไขปัญหาทางกฎหมาย
               </p>
+              
+              <div className="grid md:grid-cols-3 gap-4 mt-6 p-4 bg-card/30 rounded-xl backdrop-blur-sm border border-border/50">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">10,000+</div>
+                  <div className="text-sm text-muted-foreground">คำถามที่ตอบแล้ว</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">95%</div>
+                  <div className="text-sm text-muted-foreground">ความพึงพอใจ</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">24/7</div>
+                  <div className="text-sm text-muted-foreground">พร้อมให้บริการ</div>
+                </div>
+              </div>
             </div>
 
             {/* Features */}
