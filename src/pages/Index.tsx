@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import { HeroSection } from '@/components/HeroSection';
-import { ServicesSection } from '@/components/ServicesSection';
-import { TopLawyersSection } from '@/components/TopLawyersSection';
-import { ChatInterface } from '@/components/ChatInterface';
-import { LawyerDashboard } from '@/components/LawyerDashboard';
-import { CheckoutPage } from '@/components/CheckoutPage';
-import { PaymentSuccess } from '@/components/PaymentSuccess';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, MessageSquare, Users, CreditCard } from 'lucide-react';
+import React, { useState } from "react";
+import { HeroSection } from "@/components/HeroSection";
+import { ServicesSection } from "@/components/ServicesSection";
+import { TopLawyersSection } from "@/components/TopLawyersSection";
+import { ChatInterface } from "@/components/ChatInterface";
+import { LawyerDashboard } from "@/components/LawyerDashboard";
+import { CheckoutPage } from "@/components/CheckoutPage";
+import { PaymentSuccess } from "@/components/PaymentSuccess";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, MessageSquare, Users, CreditCard } from "lucide-react";
 
-type AppState = 'home' | 'chat' | 'lawyers' | 'checkout' | 'success';
+
+type AppState = "home" | "chat" | "lawyers" | "checkout" | "success";
 
 interface Lawyer {
   id: string;
@@ -25,54 +26,54 @@ interface Lawyer {
 }
 
 const Index = () => {
-  const [currentState, setCurrentState] = useState<AppState>('home');
+  const [currentState, setCurrentState] = useState<AppState>("home");
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
 
   const handleStartChat = () => {
-    setCurrentState('chat');
+    setCurrentState("chat");
   };
 
   const handleShowLawyers = () => {
-    setCurrentState('lawyers');
+    setCurrentState("lawyers");
   };
 
   const handleSelectLawyer = (lawyer: Lawyer) => {
     setSelectedLawyer(lawyer);
-    setCurrentState('checkout');
+    setCurrentState("checkout");
   };
 
   const handleBackToHome = () => {
-    setCurrentState('home');
+    setCurrentState("home");
     setSelectedLawyer(null);
   };
 
   const handleBackToLawyers = () => {
-    setCurrentState('lawyers');
+    setCurrentState("lawyers");
   };
 
   const handlePaymentSuccess = () => {
-    setCurrentState('success');
+    setCurrentState("success");
   };
 
   // Navigation Header for non-home states
   const renderNavigationHeader = () => {
-    if (currentState === 'home') return null;
+    if (currentState === "home") return null;
 
-    let title = '';
+    let title = "";
     let backAction = handleBackToHome;
 
     switch (currentState) {
-      case 'chat':
-        title = 'ปรึกษาทนาย AI';
+      case "chat":
+        title = "ปรึกษาทนาย AI";
         break;
-      case 'lawyers':
-        title = 'ค้นหาทนายมืออาชีพ';
+      case "lawyers":
+        title = "ค้นหาทนายมืออาชีพ";
         break;
-      case 'checkout':
-        title = 'จองการปรึกษา';
+      case "checkout":
+        title = "จองการปรึกษา";
         backAction = handleBackToLawyers;
         break;
-      case 'success':
+      case "success":
         return null; // Success page handles its own navigation
     }
 
@@ -80,8 +81,8 @@ const Index = () => {
       <div className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={backAction}
               className="flex items-center space-x-2"
             >
@@ -99,13 +100,15 @@ const Index = () => {
   // Render current state
   const renderCurrentState = () => {
     switch (currentState) {
-      case 'home':
+      case "home":
         return (
           <div>
             <HeroSection onStartChat={handleStartChat} />
-            <ServicesSection onStartChat={handleStartChat} onShowLawyers={handleShowLawyers} />
-            <TopLawyersSection />
-            {/* Trust Indicators */}
+
+            <ServicesSection
+              onStartChat={handleStartChat}
+              onShowLawyers={handleShowLawyers}
+            />
             <div className="border-t border-border bg-card/30 backdrop-blur-sm">
               <div className="container mx-auto px-4 py-8">
                 <div className="text-center space-y-4">
@@ -113,20 +116,34 @@ const Index = () => {
                     บริการครอบคลุมด้านกฎหมายหลากหลาย
                   </h2>
                   <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                    <span className="px-3 py-1 bg-secondary rounded-full">กฎหมายแพ่ง</span>
-                    <span className="px-3 py-1 bg-secondary rounded-full">กฎหมายอาญา</span>
-                    <span className="px-3 py-1 bg-secondary rounded-full">กฎหมายครอบครัว</span>
-                    <span className="px-3 py-1 bg-secondary rounded-full">กฎหมายแรงงาน</span>
-                    <span className="px-3 py-1 bg-secondary rounded-full">กฎหมายธุรกิจ</span>
-                    <span className="px-3 py-1 bg-secondary rounded-full">และอื่นๆ</span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      กฎหมายแพ่ง
+                    </span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      กฎหมายอาญา
+                    </span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      กฎหมายครอบครัว
+                    </span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      กฎหมายแรงงาน
+                    </span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      กฎหมายธุรกิจ
+                    </span>
+                    <span className="px-3 py-1 bg-secondary rounded-full">
+                      และอื่นๆ
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
+            <TopLawyersSection />
+            {/* Trust Indicators */}
           </div>
         );
 
-      case 'chat':
+      case "chat":
         return (
           <div className="min-h-screen bg-gradient-background flex flex-col">
             {renderNavigationHeader()}
@@ -136,7 +153,7 @@ const Index = () => {
           </div>
         );
 
-      case 'lawyers':
+      case "lawyers":
         return (
           <div className="min-h-screen bg-gradient-background">
             {renderNavigationHeader()}
@@ -144,19 +161,17 @@ const Index = () => {
           </div>
         );
 
-      case 'checkout':
+      case "checkout":
         return selectedLawyer ? (
-          <CheckoutPage 
-            lawyer={selectedLawyer} 
+          <CheckoutPage
+            lawyer={selectedLawyer}
             onBack={handleBackToLawyers}
             onPaymentSuccess={handlePaymentSuccess}
           />
         ) : null;
 
-      case 'success':
-        return (
-          <PaymentSuccess onBackToHome={handleBackToHome} />
-        );
+      case "success":
+        return <PaymentSuccess onBackToHome={handleBackToHome} />;
 
       default:
         return null;
