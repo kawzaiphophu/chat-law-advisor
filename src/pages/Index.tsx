@@ -148,7 +148,7 @@ const Index = () => {
           <div className="min-h-screen bg-gradient-background flex flex-col">
             {renderNavigationHeader()}
             <Card className="flex-1 m-4 bg-card/80 backdrop-blur-sm border-border shadow-elegant">
-              <ChatInterface />
+              <ChatInterface onShowLawyers={handleShowLawyers} />
             </Card>
           </div>
         );

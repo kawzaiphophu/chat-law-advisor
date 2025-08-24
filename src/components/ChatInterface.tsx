@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, AlertCircle, Users } from 'lucide-react';
 import { openAIService } from '@/lib/openai';
 
 interface Message {
@@ -18,6 +18,10 @@ interface ChatMessage {
   content: string;
 }
 
+interface ChatInterfaceProps {
+  onShowLawyers?: () => void;
+}
+
 const EXAMPLE_QUESTIONS = [
   "สามารถขอหย่าร้างได้ในกรณีใดบ้าง?",
   "ขั้นตอนการทำพินัยกรรมเป็นอย่างไร?",
@@ -25,7 +29,7 @@ const EXAMPLE_QUESTIONS = [
   "การขอกู้เงินธนาคารต้องระวังอะไร?"
 ];
 
-export const ChatInterface = () => {
+export const ChatInterface = ({ onShowLawyers }: ChatInterfaceProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -200,6 +204,21 @@ export const ChatInterface = () => {
               </Button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Lawyer Suggestion - Show when conversation has AI responses and user is not typing */}
+      {messages.length > 1 && !isTyping && onShowLawyers && (
+        <div className="px-4 pb-2">
+          <Button
+            onClick={onShowLawyers}
+            variant="outline"
+            size="sm"
+            className="w-full bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-blue-200 text-blue-700 hover:text-blue-800 transition-all duration-300"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            ต้องการคำปรึกษาเพิ่มเติม? ค้นหาทนายมืออาชีพ
+          </Button>
         </div>
       )}
 
