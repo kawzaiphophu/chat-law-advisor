@@ -28,7 +28,7 @@ class OpenAIService {
   }
 
   private getSystemPrompt(): string {
-    return `คุณคือ Lawra ทนายความ AI ตอบคำถามกฎหมายไทยแบบง่ายๆ พร้อมแนะนำให้ปรึกษาทนายมืออาชีพ`;
+    return `คุณคือ Lawra ทนายความ AI ให้คำตอบสั้นๆ กระชับ ไม่เกิน 10 บรรทัด เน้นประเด็นสำคัญ และแนะนำปรึกษาทนายมืออาชีพ`;
   }
 
   async sendMessage(
